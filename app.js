@@ -187,27 +187,18 @@ function parseGS1(raw) {
     code = convertToParenthesized(code);
   }
   
-  // Extract fields
-  const patterns = {
-    gtin: /\(01\)(\d{12,14})/,
-    expiry: /\(17\)(\d{6})/,
-    batch: /\(10\)([^\(|\x1d]+)/,
-    serial: /\(21\)([^\(|\x1d]+)/,
-    qty: /\(30\)(\d+)/
-  };
+  const fields = extractAIFields(code);
   
   // GTIN
-  const gtinMatch = code.match(patterns.gtin);
-  if (gtinMatch) {
-    result.gtin14 = gtinMatch[1].padStart(14, '0');
+  if (fields['01']) {
+    result.gtin14 = fields['01'].replace(/\D/g, '').padStart(14, '0').slice(-14);
     result.gtin13 = result.gtin14.startsWith('0') ? result.gtin14.substring(1) : result.gtin14;
     result.valid = true;
   }
   
   // Expiry
-  const expiryMatch = code.match(patterns.expiry);
-  if (expiryMatch) {
-    const parsed = parseExpiryDate(expiryMatch[1]);
+  if (fields['17'] && /^\d{6}$/.test(fields['17'])) {
+    const parsed = parseExpiryDate(fields['17']);
     result.expiry = parsed.iso;
     result.expiryDDMMYY = parsed.ddmmyy;
     result.expiryFormatted = parsed.formatted;
@@ -215,24 +206,39 @@ function parseGS1(raw) {
   }
   
   // Batch
-  const batchMatch = code.match(patterns.batch);
-  if (batchMatch) {
-    result.batch = batchMatch[1].replace(/\|/g, '').trim();
-  }
+  result.batch = normalizeBatch(fields['10'] || '');
   
   // Serial
-  const serialMatch = code.match(patterns.serial);
-  if (serialMatch) {
-    result.serial = serialMatch[1].replace(/\|/g, '').trim();
+  if (fields['21']) {
+    result.serial = fields['21'].replace(/\|/g, '').trim();
   }
   
   // Quantity
-  const qtyMatch = code.match(patterns.qty);
-  if (qtyMatch) {
-    result.qty = parseInt(qtyMatch[1]) || 1;
+  if (fields['30']) {
+    result.qty = parseInt(fields['30']) || 1;
   }
   
   return result;
+}
+
+function extractAIFields(code) {
+  const fields = {};
+  const regex = /\((\d{2,4})\)([^()]*)/g;
+  let match;
+  while ((match = regex.exec(code)) !== null) {
+    const ai = match[1];
+    const value = (match[2] || '').replace(/\|/g, '').trim();
+    if (!fields[ai]) fields[ai] = value;
+  }
+  return fields;
+}
+
+function normalizeBatch(batch) {
+  if (!batch) return '';
+  const cleaned = batch.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (cleaned.length < 6) return '';
+  if (cleaned.length > 20) return cleaned.substring(0, 20);
+  return cleaned;
 }
 
 function convertToParenthesized(code) {
@@ -299,8 +305,8 @@ function parseExpiryDate(yymmdd) {
   
   return {
     iso: date.toISOString().split('T')[0],
-    ddmmyy: `${String(day).padStart(2, '0')}${String(month).padStart(2, '0')}${yymmdd.substring(0, 2)}`,
-    formatted: `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`
+    ddmmyy: `${String(day).padStart(2, '0')}${String(month).padStart(2, '0')}${year}`,
+    formatted: `${String(day).padStart(2, '0')}${String(month).padStart(2, '0')}${year}`
   };
 }
 
@@ -699,7 +705,7 @@ async function updateMasterFromEdit(gtin, name) {
 // ============================================
 // EXPORT (Custom Format)
 // ============================================
-// Header: RMS | BARCODE (GTIN) | DESCRIPTION | EXPIRY (DDMMYY) | BATCH | QUANTITY
+// Header: RMS | BARCODE (GTIN) | DESCRIPTION | EXPIRY (DDMMYYYY) | BATCH | QUANTITY
 
 function exportTSV() {
   if (State.history.length === 0) {
@@ -707,7 +713,7 @@ function exportTSV() {
     return;
   }
   
-  const headers = ['RMS', 'BARCODE (GTIN)', 'DESCRIPTION', 'EXPIRY (DDMMYY)', 'BATCH', 'QUANTITY'];
+  const headers = ['RMS', 'BARCODE (GTIN)', 'DESCRIPTION', 'EXPIRY (DDMMYYYY)', 'BATCH', 'QUANTITY'];
   const rows = State.history.map(h => [
     h.rms || '',
     h.gtin14 || h.gtin13 || '',
@@ -730,7 +736,7 @@ function exportCSV() {
     return;
   }
   
-  const headers = ['RMS', 'BARCODE (GTIN)', 'DESCRIPTION', 'EXPIRY (DDMMYY)', 'BATCH', 'QUANTITY'];
+  const headers = ['RMS', 'BARCODE (GTIN)', 'DESCRIPTION', 'EXPIRY (DDMMYYYY)', 'BATCH', 'QUANTITY'];
   const rows = State.history.map(h => [
     h.rms || '',
     h.gtin14 || h.gtin13 || '',
