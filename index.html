@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#001f1f">
+  <meta name="theme-color" content="#050b16">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>PharmaTrack - Stock Scanner</title>
@@ -14,18 +14,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      /* Burnt Terra · Orange-to-Teal Gradient Palette */
-      --gradient-start: #c7522a;
-      --gradient-mid:   #3a6b60;
-      --gradient-end:   #001f1f;
-      --purple-light:   #e5c185;       /* warm sand  — was purple-light  */
-      --purple-primary: #74a892;       /* sage green — was purple-primary */
-      --purple-dark:    #008585;       /* deep teal  — was purple-dark    */
-      --purple-glow:    rgba(199, 82, 42, 0.30);
+      /* Night mode palette with softer light surfaces */
+      --gradient-start: #09111f;
+      --gradient-mid:   #111f33;
+      --gradient-end:   #050b16;
+      --purple-light:   #9cc9ff;
+      --purple-primary: #61a5fa;
+      --purple-dark:    #1f6feb;
+      --purple-glow:    rgba(97, 165, 250, 0.30);
 
       /* Accent Colors */
-      --accent:       #74a892;         /* sage green */
-      --accent-light: #e5c185;         /* warm sand  */
+      --accent:       #8bc2ff;
+      --accent-light: #d7eaff;
 
       /* Status Colors */
       --green: #10b981;
@@ -41,7 +41,7 @@
       --gray-200: #e5e7eb;
       --gray-300: #d1d5db;
       --gray-400: #9ca3af;
-      --gray-500: #6b7280;
+      --gray-500: #93a4bb;
       --gray-600: #4b5563;
       --gray-700: #374151;
       --gray-800: #1f2937;
@@ -454,17 +454,17 @@
     }
     /* History Card */
     .history-card {
-      background: rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.08);
       border-radius: 14px;
       padding: 14px;
       margin-bottom: 10px;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
       transition: all 0.2s;
       position: relative;
     }
     .history-card:active {
       transform: scale(0.98);
-      background: rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.12);
     }
     .history-card.status-expired {
       border-left: 3px solid var(--red);
@@ -527,7 +527,7 @@
     .history-value {
       font-size: 12px;
       font-family: 'JetBrains Mono', monospace;
-      color: var(--gray-300);
+      color: #e6edf7;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
